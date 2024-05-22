@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 
-#define TCP_PORT 8262
+#define TCP_PORT 8268
 #define BUFFER_SIZE 2048
 
 void manejar_mensaje(const char *data) {
@@ -40,7 +40,7 @@ int main() {
 
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(TCP_PORT);
 
     if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
