@@ -1,0 +1,20 @@
+compilacion cliente
+gcc -o client client.c
+
+compilacion servidor
+gcc -o server server.c
+
+
+Copiar un archivo del servidor al cliente
+./client ipservidor nombrearchivoenServidor read
+
+ejemplo:
+./client 192.168.0.111 archivo_en_server.txt read
+
+
+
+Copiar un archivo del cliente al servidor
+./client ipServidor nombreArchivoEnCliente write
+
+ejemplo:
+./client 192.168.0.111 archivo_en_client.txt write
