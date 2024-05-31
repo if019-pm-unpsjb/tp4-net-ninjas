@@ -37,8 +37,7 @@ void receive_file(const char *server_ip, const char *remote_file_name, const cha
         error("fopen");
     }
 
-    // Send RRQ (Read Request)
-    *(uint16_t *)buffer = htons(1); // RRQ opcode
+    *(uint16_t *)buffer = htons(1); 
     strcpy(buffer + 2, remote_file_name);
     strcpy(buffer + 2 + strlen(remote_file_name) + 1, "octet");
 
@@ -75,7 +74,7 @@ void receive_file(const char *server_ip, const char *remote_file_name, const cha
         }
 
         if (n < DATA_SIZE + 4) {
-            break; // Last packet received
+            break;
         }
 
         block_number++;
@@ -108,8 +107,7 @@ void send_file(const char *server_ip, const char *local_file_path, const char *r
         error("fopen");
     }
 
-    // Send WRQ (Write Request)
-    *(uint16_t *)buffer = htons(2); // WRQ opcode
+    *(uint16_t *)buffer = htons(2); 
     strcpy(buffer + 2, remote_file_name);
     strcpy(buffer + 2 + strlen(remote_file_name) + 1, "octet");
 
