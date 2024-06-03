@@ -38,7 +38,7 @@ void manejar_mensaje(int sockfd, const char *data) {
     }
     pthread_mutex_unlock(&clientes_mutex);
 }
-
+/*
 void manejar_archivo(int sockfd, const char *data) {
     char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
     size_t file_size;
@@ -85,6 +85,230 @@ void manejar_archivo(int sockfd, const char *data) {
         printf("Error al reenviar el archivo %s\n", nombre_archivo);
     }
 }
+*/
+/*
+void manejar_archivo(int sockfd, const char *data) {
+    char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
+    size_t file_size;
+    sscanf(data, "FILE|%49[^|]|%49[^|]|%255[^|]|%zu|", remitente, destinatario, nombre_archivo, &file_size);
+
+    printf("Archivo recibido de %s para %s: %s (tamaño: %zu bytes)\n", remitente, destinatario, nombre_archivo, file_size);
+
+    pthread_mutex_lock(&clientes_mutex);
+    int destinatario_sockfd = -1;
+    for (int i = 0; i < num_clientes; i++) {
+        if (strcmp(clientes[i].nombre, destinatario) == 0) {
+            destinatario_sockfd = clientes[i].sockfd;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&clientes_mutex);
+
+    if (destinatario_sockfd == -1) {
+        printf("Destinatario %s no encontrado\n", destinatario);
+        return;
+    }
+
+    // Enviar el archivo al destinatario
+    if (write(destinatario_sockfd, data, strlen(data)) < 0) {
+        perror("Error al reenviar el archivo al destinatario");
+        return;
+    }
+
+    printf("Archivo reenviado correctamente a %s\n", destinatario);
+}
+*/
+/*
+void manejar_archivo(int sockfd, const char *data) {
+    char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
+    size_t file_size;
+    sscanf(data, "FILE|%49[^|]|%49[^|]|%255[^|]|%zu|", remitente, destinatario, nombre_archivo, &file_size);
+
+    printf("Archivo recibido de %s para %s: %s (tamaño: %zu bytes)\n", remitente, destinatario, nombre_archivo, file_size);
+
+    // Generar un nombre único para el archivo
+    char nombre_completo[MAX_FILE_NAME + 10]; // 10 caracteres adicionales para un sufijo único
+    sprintf(nombre_completo, "%s_%lu", nombre_archivo, time(NULL));
+
+    // Crear y abrir el archivo en modo de escritura binaria
+    FILE *file = fopen(nombre_completo, "wb");
+    if (file == NULL) {
+        perror("Error al abrir el archivo para escritura");
+        return;
+    }
+
+    // Recibir los datos del archivo y escribirlos en el archivo local
+    size_t bytes_recibidos = 0;
+    size_t bytes_leidos;
+    char buffer[BUFFER_SIZE];
+    while (bytes_recibidos < file_size && (bytes_leidos = read(sockfd, buffer, BUFFER_SIZE)) > 0) {
+        fwrite(buffer, 1, bytes_leidos, file);
+        bytes_recibidos += bytes_leidos;
+    }
+
+    // Verificar si se recibió el archivo completo
+    if (bytes_recibidos != file_size) {
+        fprintf(stderr, "Error: No se recibió el archivo completo\n");
+        fclose(file);
+        remove(nombre_completo); // Eliminar el archivo incompleto
+        return;
+    }
+
+    printf("Archivo recibido y guardado como %s\n", nombre_completo);
+
+    fclose(file);
+}
+*/
+/*
+void manejar_archivo(int sockfd, const char *data) {
+    char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
+    size_t file_size;
+    sscanf(data, "FILE|%49[^|]|%49[^|]|%255[^|]|%zu|", remitente, destinatario, nombre_archivo, &file_size);
+
+    printf("Archivo recibido de %s para %s: %s (tamaño: %zu bytes)\n", remitente, destinatario, nombre_archivo, file_size);
+
+    // Buscar al destinatario en la lista de clientes
+    pthread_mutex_lock(&clientes_mutex);
+    int destinatario_sockfd = -1;
+    for (int i = 0; i < num_clientes; i++) {
+        if (strcmp(clientes[i].nombre, destinatario) == 0) {
+            destinatario_sockfd = clientes[i].sockfd;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&clientes_mutex);
+
+    if (destinatario_sockfd == -1) {
+        printf("Destinatario %s no encontrado\n", destinatario);
+        return;
+    }
+
+    // Enviar el encabezado del archivo al destinatario
+    if (write(destinatario_sockfd, data, strlen(data)) < 0) {
+        perror("Error al reenviar el encabezado del archivo al destinatario");
+        return;
+    }
+
+    // Reenviar los datos del archivo al destinatario
+    size_t bytes_enviados = 0;
+    ssize_t bytes_leidos;
+    char buffer[BUFFER_SIZE];
+    while (bytes_enviados < file_size && (bytes_leidos = read(sockfd, buffer, sizeof(buffer))) > 0) {
+        if (write(destinatario_sockfd, buffer, bytes_leidos) < 0) {
+            perror("Error al reenviar los datos del archivo al destinatario");
+            return;
+        }
+        bytes_enviados += bytes_leidos;
+    }
+
+    if (bytes_enviados != file_size) {
+        fprintf(stderr, "Error: No se pudo reenviar el archivo completo al destinatario\n");
+        return;
+    }
+
+    printf("Archivo reenviado correctamente a %s\n", destinatario);
+}
+*/
+/*
+void manejar_archivo(int sockfd, const char *data) {
+    char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
+    size_t file_size;
+    sscanf(data, "FILE|%49[^|]|%49[^|]|%255[^|]|%zu|", remitente, destinatario, nombre_archivo, &file_size);
+
+    printf("Archivo recibido de %s para %s: %s (tamaño: %zu bytes)\n", remitente, destinatario, nombre_archivo, file_size);
+
+    // Buscar al destinatario en la lista de clientes
+    pthread_mutex_lock(&clientes_mutex);
+    int destinatario_sockfd = -1;
+    for (int i = 0; i < num_clientes; i++) {
+        if (strcmp(clientes[i].nombre, destinatario) == 0) {
+            destinatario_sockfd = clientes[i].sockfd;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&clientes_mutex);
+
+    if (destinatario_sockfd == -1) {
+        printf("Destinatario %s no encontrado\n", destinatario);
+        return;
+    }
+
+    // Enviar el encabezado del archivo al destinatario
+    if (write(destinatario_sockfd, data, strlen(data)) < 0) {
+        perror("Error al reenviar el encabezado del archivo al destinatario");
+        return;
+    }
+
+    // Reenviar los datos del archivo al destinatario
+    size_t bytes_enviados = 0;
+    ssize_t bytes_leidos;
+    char buffer[BUFFER_SIZE];
+    while (bytes_enviados < file_size && (bytes_leidos = read(sockfd, buffer, sizeof(buffer))) > 0) {
+        if (write(destinatario_sockfd, buffer, bytes_leidos) < 0) {
+            perror("Error al reenviar los datos del archivo al destinatario");
+            return;
+        }
+        bytes_enviados += bytes_leidos;
+    }
+
+    if (bytes_enviados != file_size) {
+        fprintf(stderr, "Error: No se pudo reenviar el archivo completo al destinatario\n");
+        return;
+    }
+
+    printf("Archivo reenviado correctamente a %s\n", destinatario);
+}
+*/
+
+void manejar_archivo(int sockfd, const char *data) {
+    char remitente[MAX_NOMBRE], destinatario[MAX_NOMBRE], nombre_archivo[MAX_FILE_NAME];
+    size_t file_size;
+    sscanf(data, "FILE|%49[^|]|%49[^|]|%255[^|]|%zu|", remitente, destinatario, nombre_archivo, &file_size);
+
+    printf("Archivo recibido de %s para %s: %s (tamaño: %zu bytes)\n", remitente, destinatario, nombre_archivo, file_size);
+
+    // Buscar al destinatario en la lista de clientes
+    pthread_mutex_lock(&clientes_mutex);
+    int destinatario_sockfd = -1;
+    for (int i = 0; i < num_clientes; i++) {
+        if (strcmp(clientes[i].nombre, destinatario) == 0) {
+            destinatario_sockfd = clientes[i].sockfd;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&clientes_mutex);
+
+    if (destinatario_sockfd == -1) {
+        printf("Destinatario %s no encontrado\n", destinatario);
+        return;
+    }
+
+    // Enviar el encabezado del archivo al destinatario
+    if (write(destinatario_sockfd, data, strlen(data)) < 0) {
+        perror("Error al reenviar el encabezado del archivo al destinatario");
+        return;
+    }
+
+    // Reenviar los datos del archivo al destinatario
+    size_t bytes_enviados = 0;
+    ssize_t bytes_leidos;
+    char buffer[BUFFER_SIZE];
+    while (bytes_enviados < file_size && (bytes_leidos = read(sockfd, buffer, sizeof(buffer))) > 0) {
+        if (write(destinatario_sockfd, buffer, bytes_leidos) < 0) {
+            perror("Error al reenviar los datos del archivo al destinatario");
+            return;
+        }
+        bytes_enviados += bytes_leidos;
+    }
+
+    if (bytes_enviados != file_size) {
+        fprintf(stderr, "Error: No se pudo reenviar el archivo completo al destinatario\n");
+        return;
+    }
+
+    printf("Archivo reenviado correctamente a %s\n", destinatario);
+}
+
 
 void *manejar_cliente(void *arg) {
     int sockfd = *((int *)arg);
